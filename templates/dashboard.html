@@ -36,7 +36,7 @@
                         <td>{{ loop.index }}</td>
                         <td>{{ product.name }}</td>
                         <td>
-                            {% set days_left = (product.expiry_date - now().date()).days %}
+                            {% set days_left = (product.expiry_date - today).days %}
                             <span class="{% if days_left < 7 %}text-danger{% elif days_left < 30 %}text-warning{% else %}text-success{% endif %}">
                                 {{ product.expiry_date.strftime('%d.%m.%Y') }}
                             </span>

@@ -127,8 +127,10 @@ def logout():
 @app.route('/dashboard')
 @login_required
 def dashboard():
+    from datetime import date
     products = Product.query.order_by(Product.expiry_date.asc()).all()
-    return render_template('dashboard.html', products=products)
+    today = date.today()
+    return render_template('dashboard.html', products=products, today=today)
 
 @app.route('/product/add', methods=['GET', 'POST'])
 @login_required
