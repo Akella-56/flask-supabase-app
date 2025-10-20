@@ -1,4 +1,6 @@
 import os
+import re
+import urllib.parse
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -7,9 +9,19 @@ from datetime import datetime
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SESSION_SECRET', 'dev-secret-key-change-in-production')
-db_uri = os.environ.get('SUPABASE_DB_CONNECTION')
-if db_uri and db_uri.startswith('postgres://'):
-    db_uri = db_uri.replace('postgres://', 'postgresql://', 1)
+
+db_uri = os.environ.get('SUPABASE_POOLER_URL', '')
+if db_uri:
+    if db_uri.startswith('postgres://'):
+        db_uri = db_uri.replace('postgres://', 'postgresql://', 1)
+    
+    match = re.match(r'(postgresql://[^:]+):([^@]+)@(.+)', db_uri)
+    if match:
+        prefix, password, rest = match.groups()
+        if any(c in password for c in ['@', ':', '/', '?', '#', '[', ']', '!', '$', '&', "'", '(', ')', '*', '+', ',', ';', '=']):
+            encoded_password = urllib.parse.quote(password, safe='')
+            db_uri = f"{prefix}:{encoded_password}@{rest}"
+
 app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
